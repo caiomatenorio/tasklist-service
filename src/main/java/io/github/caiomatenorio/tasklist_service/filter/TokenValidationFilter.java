@@ -55,7 +55,7 @@ public class TokenValidationFilter extends OncePerRequestFilter {
         try {
             String refreshToken = cookieMap.get("refresh_token");
             SessionUpdateOutput output = sessionService.useRefreshToken(refreshToken);
-            authenticate(output.userUsername());
+            authenticate(output.username());
 
             Set<Cookie> newCookies = sessionService.createTokenCookies(output.id());
             newCookies.forEach(response::addCookie);
