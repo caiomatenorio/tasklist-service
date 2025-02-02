@@ -15,10 +15,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Entity
 @Data
 @NoArgsConstructor
+@RequiredArgsConstructor
 public class Session {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -26,19 +29,24 @@ public class Session {
 
     @ManyToOne
     @JoinColumn(nullable = false)
+    @NonNull
     private User user;
 
     @Column(unique = true, nullable = false)
+    @NonNull
     private String refreshToken;
 
     @CreationTimestamp
     @Column(nullable = false)
+    @NonNull
     private Instant createdAt;
 
     @UpdateTimestamp
     @Column(nullable = false)
+    @NonNull
     private Instant updatedAt;
 
     @Column(nullable = false)
+    @NonNull
     private Instant expiredAt;
 }

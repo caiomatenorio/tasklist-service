@@ -16,7 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.caiomatenorio.tasklist_service.dto.ResponseBody;
-import io.github.caiomatenorio.tasklist_service.dto.SessionUpdateOutput;
+import io.github.caiomatenorio.tasklist_service.dto.output.RefreshSessionOutput;
 import io.github.caiomatenorio.tasklist_service.exception.RefreshTokenException;
 import io.github.caiomatenorio.tasklist_service.service.SessionService;
 import io.github.caiomatenorio.tasklist_service.util.CookieUtil;
@@ -54,10 +54,10 @@ public class TokenValidationFilter extends OncePerRequestFilter {
 
         try {
             String refreshToken = cookieMap.get("refresh_token");
-            SessionUpdateOutput output = sessionService.useRefreshToken(refreshToken);
+            RefreshSessionOutput output = sessionService.refreshSession(refreshToken);
             authenticate(output.username());
 
-            Set<Cookie> newCookies = sessionService.createTokenCookies(output.id());
+            Set<Cookie> newCookies = sessionService.createSessionCookies(output.id());
             newCookies.forEach(response::addCookie);
 
             filterChain.doFilter(request, response);

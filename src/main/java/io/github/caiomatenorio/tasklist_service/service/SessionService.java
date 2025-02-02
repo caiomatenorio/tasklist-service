@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-import io.github.caiomatenorio.tasklist_service.dto.SessionUpdateOutput;
+import io.github.caiomatenorio.tasklist_service.dto.output.RefreshSessionOutput;
 import io.github.caiomatenorio.tasklist_service.entity.Session;
 import io.github.caiomatenorio.tasklist_service.exception.RefreshTokenException;
 import io.github.caiomatenorio.tasklist_service.repository.SessionRepository;
@@ -28,16 +28,7 @@ public class SessionService {
     private final RefreshTokenUtil refreshTokenUtil;
     private final JwtUtil jwtUtil;
 
-    private Session updateSessionExpirationAndRefreshToken(Session session, String refreshToken) {
-        Instant now = Instant.now();
-        Instant expiredAt = now.plusSeconds(sessionExpirationSeconds);
-
-        session.setExpiredAt(expiredAt);
-        session.setRefreshToken(refreshToken);
-        return sessionRepository.save(session);
-    }
-
-    public SessionUpdateOutput useRefreshToken(@Nullable String refreshToken) throws RefreshTokenException {
+    public RefreshSessionOutput refreshSession(@Nullable String refreshToken) throws RefreshTokenException {
         if (refreshToken == null)
             throw new RefreshTokenException.NoRefreshTokenProvidedException();
 
@@ -46,12 +37,19 @@ public class SessionService {
                 .orElseThrow(RefreshTokenException.InvalidRefreshTokenException::new);
 
         String newRefreshToken = refreshTokenUtil.generateRefreshToken();
-        Session updatedSession = updateSessionExpirationAndRefreshToken(session, newRefreshToken);
+        Instant now = Instant.now();
+        Instant newExpiration = now.plusSeconds(sessionExpirationSeconds);
 
-        return new SessionUpdateOutput(updatedSession.getId(), updatedSession.getUser().getUsername());
+        session.setRefreshToken(newRefreshToken);
+        session.setUpdatedAt(now);
+        session.setExpiredAt(newExpiration);
+
+        Session updatedSession = sessionRepository.save(session);
+
+        return new RefreshSessionOutput(updatedSession.getId(), updatedSession.getUser().getUsername());
     }
 
-    public Set<Cookie> createTokenCookies(UUID sessionId) throws NoSuchElementException {
+    public Set<Cookie> createSessionCookies(UUID sessionId) throws NoSuchElementException {
         Session session = sessionRepository.findById(sessionId).orElseThrow();
 
         String jwt = jwtUtil.generateJwt(session.getUser().getUsername());
