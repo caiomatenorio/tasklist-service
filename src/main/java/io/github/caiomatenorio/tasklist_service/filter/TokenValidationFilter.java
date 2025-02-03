@@ -1,12 +1,10 @@
 package io.github.caiomatenorio.tasklist_service.filter;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,7 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.github.caiomatenorio.tasklist_service.dto.ResponseBody;
+import io.github.caiomatenorio.tasklist_service.dto.ConventionalResponse;
 import io.github.caiomatenorio.tasklist_service.dto.output.RefreshSessionOutput;
 import io.github.caiomatenorio.tasklist_service.exception.RefreshTokenException;
 import io.github.caiomatenorio.tasklist_service.service.SessionService;
@@ -62,15 +60,9 @@ public class TokenValidationFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
         } catch (RefreshTokenException e) {
-            sendErrorResponse(
-                    response,
-                    HttpStatus.UNAUTHORIZED,
-                    e.getMessage());
+            sendErrorResponse(response, 401, e.getMessage());
         } catch (NoSuchElementException e) {
-            sendErrorResponse(
-                    response,
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "An error occurred while processing the request");
+            sendErrorResponse(response, 500, "An error occurred while processing the request");
         }
     }
 
@@ -79,16 +71,12 @@ public class TokenValidationFilter extends OncePerRequestFilter {
                 .setAuthentication(UsernamePasswordAuthenticationToken.authenticated(username, null, null));
     }
 
-    private void sendErrorResponse(HttpServletResponse response, HttpStatus status, String message)
+    private void sendErrorResponse(HttpServletResponse response, int status, String message)
             throws IOException {
-        ResponseBody responseBody = new ResponseBody.Error(
-                status,
-                Instant.now(),
-                message);
+        ConventionalResponse responseBody = new ConventionalResponse.Error(status, message);
 
-        response.setStatus(status.value());
+        response.setStatus(status);
         response.setContentType("application/json");
-
         objectMapper.writeValue(response.getWriter(), responseBody);
     }
 }
