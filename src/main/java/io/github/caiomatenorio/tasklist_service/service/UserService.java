@@ -1,7 +1,9 @@
 package io.github.caiomatenorio.tasklist_service.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import io.github.caiomatenorio.tasklist_service.dto.request.LoginRequest;
 import io.github.caiomatenorio.tasklist_service.dto.request.SignupRequest;
 import io.github.caiomatenorio.tasklist_service.entity.User;
 import io.github.caiomatenorio.tasklist_service.exception.UsernameAlreadyInUseException;
@@ -12,6 +14,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public void login(LoginRequest request) {
+
+    }
 
     public void signup(SignupRequest request) throws UsernameAlreadyInUseException {
         userRepository.findByUsername(request.username())
@@ -19,7 +26,9 @@ public class UserService {
                     throw new UsernameAlreadyInUseException(user.getUsername());
                 });
 
-        User user = new User(request.name(), request.username(), request.password());
+        String hashedPassword = passwordEncoder.encode(request.password());
+
+        User user = new User(request.name(), request.username(), hashedPassword);
         userRepository.save(user);
     }
 }

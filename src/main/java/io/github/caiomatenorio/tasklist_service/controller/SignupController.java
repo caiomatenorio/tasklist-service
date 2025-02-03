@@ -20,9 +20,9 @@ public class SignupController {
     private final UserService userService;
 
     @PostMapping
-    public ConventionalResponseEntity signup(@Valid @RequestBody SignupRequest signupRequest) {
+    public ConventionalResponseEntity signup(@Valid @RequestBody SignupRequest request) {
         try {
-            userService.signup(signupRequest);
+            userService.signup(request);
             return new ConventionalResponse.Success<>(201, "User created").toEntity();
         } catch (UsernameAlreadyInUseException e) {
             return new ConventionalResponse.Error(409, e.getMessage()).toEntity();

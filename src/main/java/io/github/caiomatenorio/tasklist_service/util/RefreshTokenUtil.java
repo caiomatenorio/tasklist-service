@@ -18,13 +18,12 @@ public class RefreshTokenUtil {
     @Value("${app.session.expirationSeconds}")
     private int sessionDurationSeconds;
 
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-
+    private final SecureRandom secureRandom;
     private final CookieUtil cookieUtil;
 
     public String generateRefreshToken() {
         byte[] randomBytes = new byte[refreshTokenLength];
-        SECURE_RANDOM.nextBytes(randomBytes);
+        secureRandom.nextBytes(randomBytes);
 
         return Base64.getUrlEncoder()
                 .withoutPadding()
