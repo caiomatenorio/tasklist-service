@@ -8,16 +8,18 @@ import lombok.Getter;
 
 @Getter
 public class AuthenticationToken extends UsernamePasswordAuthenticationToken {
-    private final String username;
+    private final UUID userId;
     private final UUID sessionId;
-    private final String name;
+    private final AuthenticationTokenDetails details;
 
-    public AuthenticationToken(String username, UUID sessionId, String name) {
-        super(username, sessionId, null);
-        super.setDetails(name);
+    public AuthenticationToken(UUID userId, UUID sessionId, String username, String name) {
+        super(userId, sessionId, null);
 
-        this.username = username;
+        this.userId = userId;
         this.sessionId = sessionId;
-        this.name = name;
+        this.details = new AuthenticationTokenDetails(username, name);
+
+        setAuthenticated(true);
+        setDetails(details);
     }
 }

@@ -65,7 +65,11 @@ public class SessionService {
     public Set<ConventionalCookie> createSessionCookies(UUID sessionId) throws NoSuchElementException {
         Session session = sessionRepository.findById(sessionId).orElseThrow();
 
-        String jwt = jwtUtil.generateJwt(session.getUser().getUsername(), session.getId(), session.getUser().getName());
+        String jwt = jwtUtil.generateJwt(
+                session.getId(),
+                session.getUser().getId(),
+                session.getUser().getUsername(),
+                session.getUser().getName());
         String refreshToken = session.getRefreshToken();
 
         ConventionalCookie authCookie = jwtUtil.createAuthCookie(jwt);

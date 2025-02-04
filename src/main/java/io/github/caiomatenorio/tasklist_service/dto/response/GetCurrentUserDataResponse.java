@@ -1,6 +1,9 @@
 package io.github.caiomatenorio.tasklist_service.dto.response;
 
-public record GetUserBasicDataResponse(
+import java.util.UUID;
+
+public record GetCurrentUserDataResponse(
+        UUID id,
         String username,
         String name) {
 }

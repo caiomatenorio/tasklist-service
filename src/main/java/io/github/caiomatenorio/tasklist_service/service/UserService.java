@@ -8,8 +8,9 @@ import org.springframework.stereotype.Service;
 
 import io.github.caiomatenorio.tasklist_service.dto.request.LoginRequest;
 import io.github.caiomatenorio.tasklist_service.dto.request.SignupRequest;
-import io.github.caiomatenorio.tasklist_service.dto.response.GetUserBasicDataResponse;
+import io.github.caiomatenorio.tasklist_service.dto.response.GetCurrentUserDataResponse;
 import io.github.caiomatenorio.tasklist_service.exception.InvalidUsernameOrPasswordException;
+import io.github.caiomatenorio.tasklist_service.exception.UnauthenticatedException;
 import io.github.caiomatenorio.tasklist_service.exception.UsernameAlreadyInUseException;
 import io.github.caiomatenorio.tasklist_service.model.User;
 import io.github.caiomatenorio.tasklist_service.repository.UserRepository;
@@ -51,8 +52,11 @@ public class UserService {
         SecurityContextHolder.clearContext();
     }
 
-    public GetUserBasicDataResponse getUserBasicData() {
-        return new GetUserBasicDataResponse(authUtil.getCurrentUsername(), authUtil.getCurrentName());
+    public GetCurrentUserDataResponse getCurrentUserData() throws UnauthenticatedException, IllegalArgumentException {
+        return new GetCurrentUserDataResponse(
+                authUtil.getCurrentUserId(),
+                authUtil.getCurrentUsername(),
+                authUtil.getCurrentName());
     }
 
 }

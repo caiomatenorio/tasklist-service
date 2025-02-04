@@ -7,19 +7,20 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import io.github.caiomatenorio.tasklist_service.exception.UnauthenticatedException;
+import io.github.caiomatenorio.tasklist_service.security.token.AuthenticationTokenDetails;
 
 @Component
 public class AuthUtil {
-    public String getCurrentUsername() throws UnauthenticatedException, IllegalArgumentException {
+    public UUID getCurrentUserId() throws UnauthenticatedException, IllegalArgumentException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null)
             throw new UnauthenticatedException();
 
-        if (!(authentication.getPrincipal() instanceof String))
-            throw new IllegalArgumentException("Principal is not a string");
+        if (!(authentication.getPrincipal() instanceof UUID))
+            throw new IllegalArgumentException("Principal is not a UUID");
 
-        return (String) authentication.getPrincipal();
+        return (UUID) authentication.getPrincipal();
     }
 
     public UUID getCurrentSessionId() throws UnauthenticatedException, IllegalArgumentException {
@@ -34,15 +35,27 @@ public class AuthUtil {
         return (UUID) authentication.getCredentials();
     }
 
+    public String getCurrentUsername() throws UnauthenticatedException, IllegalArgumentException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null)
+            throw new UnauthenticatedException();
+
+        if (!(authentication.getDetails() instanceof AuthenticationTokenDetails))
+            throw new IllegalArgumentException("Details is not an AuthenticationTokenDetails");
+
+        return ((AuthenticationTokenDetails) authentication.getDetails()).username();
+    }
+
     public String getCurrentName() throws UnauthenticatedException, IllegalArgumentException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null)
             throw new UnauthenticatedException();
 
-        if (!(authentication.getDetails() instanceof String))
-            throw new IllegalArgumentException("Details is not a string");
+        if (!(authentication.getDetails() instanceof AuthenticationTokenDetails))
+            throw new IllegalArgumentException("Details is not an AuthenticationTokenDetails");
 
-        return (String) authentication.getDetails();
+        return ((AuthenticationTokenDetails) authentication.getDetails()).name();
     }
 }

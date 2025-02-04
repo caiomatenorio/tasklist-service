@@ -9,9 +9,7 @@ import io.github.caiomatenorio.tasklist_service.config.AppProperties;
 @SpringBootApplication
 @EnableConfigurationProperties(AppProperties.class)
 public class TasklistServiceApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(TasklistServiceApplication.class, args);
 	}
-
 }

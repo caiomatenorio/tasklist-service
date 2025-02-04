@@ -71,11 +71,11 @@ public class TokenValidationFilter extends OncePerRequestFilter {
         String jwt = cookieUtil.getCookieValue(request, "auth_token").orElse(null);
 
         if (jwtUtil.isTokenValid(jwt)) {
-            String username = jwtUtil.extractUsername(jwt);
-            UUID sessionId = jwtUtil.extractSessionId(jwt);
-            String name = jwtUtil.extractName(jwt);
-
-            authenticate(username, sessionId, name);
+            authenticate(
+                    jwtUtil.extractUserId(jwt),
+                    jwtUtil.extractSessionId(jwt),
+                    jwtUtil.extractUsername(jwt),
+                    jwtUtil.extractName(jwt));
 
             filterChain.doFilter(request, response);
             return true;
@@ -92,8 +92,9 @@ public class TokenValidationFilter extends OncePerRequestFilter {
         String refreshToken = cookieUtil.getCookieValue(request, "refresh_token").orElse(null);
         Session refreshedSession = sessionService.refreshSession(refreshToken);
         authenticate(
-                refreshedSession.getUser().getUsername(),
+                refreshedSession.getUser().getId(),
                 refreshedSession.getId(),
+                refreshedSession.getUser().getUsername(),
                 refreshedSession.getUser().getName());
         Set<ConventionalCookie> newCookies = sessionService.createSessionCookies(refreshedSession.getId());
 
@@ -104,7 +105,8 @@ public class TokenValidationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private void authenticate(String username, UUID sessionId, String name) {
-        SecurityContextHolder.getContext().setAuthentication(new AuthenticationToken(username, sessionId, name));
+    private void authenticate(UUID userId, UUID sessionId, String username, String name) {
+        SecurityContextHolder.getContext()
+                .setAuthentication(new AuthenticationToken(userId, sessionId, username, name));
     }
 }

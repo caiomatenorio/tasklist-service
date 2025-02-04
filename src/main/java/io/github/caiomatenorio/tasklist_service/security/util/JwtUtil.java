@@ -40,13 +40,14 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(jwtSecretBytes);
     }
 
-    public String generateJwt(String username, UUID sessionId, String name) {
+    public String generateJwt(UUID sessionId, UUID userId, String username, String name) {
 
         Instant now = Instant.now();
         Instant expiresAt = now.plusSeconds(jwtExpirationSeconds);
 
         return Jwts.builder()
                 .subject(sessionId.toString())
+                .claim("userId", userId.toString())
                 .claim("username", username)
                 .claim("name", name)
                 .issuedAt(Date.from(now))
@@ -82,6 +83,16 @@ public class JwtUtil {
                         .parseSignedClaims(token)
                         .getPayload()
                         .getSubject());
+    }
+
+    public UUID extractUserId(String token) {
+        return UUID.fromString(
+                Jwts.parser()
+                        .verifyWith(key)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload()
+                        .get("userId", String.class));
     }
 
     public String extractUsername(String token) {
