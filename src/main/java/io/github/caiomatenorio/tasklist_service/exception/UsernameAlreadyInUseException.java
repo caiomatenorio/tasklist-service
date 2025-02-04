@@ -1,7 +1,10 @@
 package io.github.caiomatenorio.tasklist_service.exception;
 
-public class UsernameAlreadyInUseException extends RuntimeException {
-    public UsernameAlreadyInUseException(String username) {
-        super("Username " + username + " is already in use");
+import io.github.caiomatenorio.tasklist_service.convention.ConventionalErrorCode;
+import io.github.caiomatenorio.tasklist_service.convention.ConventionalException;
+
+public class UsernameAlreadyInUseException extends ConventionalException {
+    public UsernameAlreadyInUseException() {
+        super(ConventionalErrorCode.ERR005);
     }
 }

@@ -6,13 +6,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import io.github.caiomatenorio.tasklist_service.dto.LoginRequest;
-import io.github.caiomatenorio.tasklist_service.dto.SignupRequest;
-import io.github.caiomatenorio.tasklist_service.entity.User;
+import io.github.caiomatenorio.tasklist_service.dto.request.LoginRequest;
+import io.github.caiomatenorio.tasklist_service.dto.request.SignupRequest;
 import io.github.caiomatenorio.tasklist_service.exception.InvalidUsernameOrPasswordException;
 import io.github.caiomatenorio.tasklist_service.exception.UsernameAlreadyInUseException;
+import io.github.caiomatenorio.tasklist_service.model.User;
 import io.github.caiomatenorio.tasklist_service.repository.UserRepository;
-import io.github.caiomatenorio.tasklist_service.util.CookieUtil;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -33,10 +32,9 @@ public class UserService {
     }
 
     public void signup(SignupRequest request) throws UsernameAlreadyInUseException {
-        userRepository.findByUsername(request.username())
-                .ifPresent(user -> {
-                    throw new UsernameAlreadyInUseException(user.getUsername());
-                });
+        userRepository.findByUsername(request.username()).ifPresent(user -> {
+            throw new UsernameAlreadyInUseException();
+        });
 
         String hashedPassword = passwordEncoder.encode(request.password());
 

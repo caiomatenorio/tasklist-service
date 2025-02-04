@@ -56,11 +56,17 @@ public sealed interface ConventionalResponseBody
     public static final class Error implements ConventionalResponseBody {
         private final HttpStatus status;
         private final Instant timestamp;
+        private final ConventionalErrorCode errorCode;
         private final String message;
 
-        public Error(int status, @NonNull String message) {
+        public Error(int status, @NonNull ConventionalErrorCode errorCode) {
+            this(status, errorCode, errorCode.getMessage());
+        }
+
+        public Error(int status, @NonNull ConventionalErrorCode errorCode, @NonNull String message) {
             this.status = HttpStatus.valueOf(status);
             this.timestamp = Instant.now();
+            this.errorCode = errorCode;
             this.message = message;
 
             if (!(this.status.is4xxClientError() || this.status.is5xxServerError()))

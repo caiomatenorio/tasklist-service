@@ -2,6 +2,7 @@ package io.github.caiomatenorio.tasklist_service.util;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,17 @@ public class CookieUtil {
                 true,
                 "/",
                 "Strict");
+    }
+
+    public Optional<String> getCookieValue(HttpServletRequest request, String name) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null)
+            return Optional.empty();
+
+        return Arrays.stream(cookies)
+                .filter(cookie -> cookie.getName().equals(name))
+                .map(Cookie::getValue)
+                .findFirst();
     }
 
     public Map<String, String> toMap(HttpServletRequest request, String... selectedCookies) {

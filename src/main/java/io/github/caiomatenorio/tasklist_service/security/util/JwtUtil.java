@@ -1,4 +1,4 @@
-package io.github.caiomatenorio.tasklist_service.util;
+package io.github.caiomatenorio.tasklist_service.security.util;
 
 import java.time.Instant;
 import java.util.Date;
@@ -11,7 +11,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
-import io.github.caiomatenorio.tasklist_service.service.SessionService;
+import io.github.caiomatenorio.tasklist_service.util.CookieUtil;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -28,7 +28,6 @@ public class JwtUtil {
     private String jwtSecret;
 
     private final CookieUtil cookieUtil;
-    private final SessionService sessionService;
 
     private SecretKey key;
 
@@ -41,8 +40,7 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(jwtSecretBytes);
     }
 
-    public String generateJwt(UUID sessionId) {
-        String username = sessionService.getSession(sessionId).getUser().getUsername();
+    public String generateJwt(String username, UUID sessionId) {
 
         Instant now = Instant.now();
         Instant expiresAt = now.plusSeconds(jwtExpirationSeconds);

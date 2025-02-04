@@ -1,0 +1,102 @@
+package io.github.caiomatenorio.tasklist_service.security.filter;
+
+import java.io.IOException;
+import java.util.Set;
+import java.util.UUID;
+
+import org.springframework.lang.NonNull;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
+import io.github.caiomatenorio.tasklist_service.exception.InvalidRefreshTokenException;
+import io.github.caiomatenorio.tasklist_service.exception.NoRefreshTokenProvidedException;
+import io.github.caiomatenorio.tasklist_service.model.Session;
+import io.github.caiomatenorio.tasklist_service.security.token.AuthenticationToken;
+import io.github.caiomatenorio.tasklist_service.security.util.JwtUtil;
+import io.github.caiomatenorio.tasklist_service.service.SessionService;
+import io.github.caiomatenorio.tasklist_service.util.CookieUtil;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+public class TokenValidationFilter extends OncePerRequestFilter {
+    private final JwtUtil jwtUtil;
+    private final SessionService sessionService;
+    private final CookieUtil cookieUtil;
+
+    @Override
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
+        boolean skipped = skipIfLogin(request, response, filterChain);
+
+        if (skipped)
+            return;
+
+        skipped = useJwt(request, response, filterChain);
+
+        if (skipped)
+            return;
+
+        useRefreshToken(request, response, filterChain);
+    }
+
+    private boolean skipIfLogin(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain) throws IOException, ServletException {
+        if (request.getRequestURI().equals("/login")) {
+            filterChain.doFilter(request, response);
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean useJwt(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain)
+            throws IOException, ServletException {
+        String jwt = cookieUtil.getCookieValue(request, "auth_token").orElse(null);
+
+        if (jwtUtil.isTokenValid(jwt)) {
+            String username = jwtUtil.extractUsername(jwt);
+            UUID sessionId = jwtUtil.extractSessionId(jwt);
+            authenticate(username, sessionId);
+
+            filterChain.doFilter(request, response);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void useRefreshToken(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain)
+            throws NoRefreshTokenProvidedException, InvalidRefreshTokenException, IOException, ServletException {
+        String refreshToken = cookieUtil.getCookieValue(request, "refresh_token").orElse(null);
+        Session refreshedSession = sessionService.refreshSession(refreshToken);
+        authenticate(refreshedSession.getUser().getUsername(), refreshedSession.getId());
+        Set<ConventionalCookie> newCookies = sessionService.createSessionCookies(refreshedSession.getId());
+
+        newCookies.stream()
+                .map(ConventionalCookie::toServletCookie)
+                .forEach(response::addCookie);
+
+        filterChain.doFilter(request, response);
+    }
+
+    private void authenticate(String username, UUID sessionId) {
+        SecurityContextHolder.getContext().setAuthentication(new AuthenticationToken(username, sessionId));
+    }
+}

@@ -1,4 +1,4 @@
-package io.github.caiomatenorio.tasklist_service.entity;
+package io.github.caiomatenorio.tasklist_service.model;
 
 import java.time.Instant;
 import java.util.UUID;

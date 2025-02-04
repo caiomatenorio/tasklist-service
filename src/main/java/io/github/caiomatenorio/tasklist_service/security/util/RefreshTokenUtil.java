@@ -1,4 +1,4 @@
-package io.github.caiomatenorio.tasklist_service.util;
+package io.github.caiomatenorio.tasklist_service.security.util;
 
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
+import io.github.caiomatenorio.tasklist_service.util.CookieUtil;
 import lombok.RequiredArgsConstructor;
 
 @Component

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
 import io.github.caiomatenorio.tasklist_service.convention.ConventionalResponseBody;
-import io.github.caiomatenorio.tasklist_service.dto.LoginRequest;
+import io.github.caiomatenorio.tasklist_service.dto.request.LoginRequest;
 import io.github.caiomatenorio.tasklist_service.service.SessionService;
 import io.github.caiomatenorio.tasklist_service.service.UserService;
 import io.github.caiomatenorio.tasklist_service.util.CookieUtil;
@@ -31,6 +31,7 @@ public class LoginController {
     @PostMapping
     public ResponseEntity<ConventionalResponseBody> login(@Valid @RequestBody LoginRequest request) {
         UUID sessionId = userService.login(request);
+
         Set<ConventionalCookie> sessionCookies = sessionService.createSessionCookies(sessionId);
         HttpHeaders headers = cookieUtil.toHttpHeaders(sessionCookies);
 
