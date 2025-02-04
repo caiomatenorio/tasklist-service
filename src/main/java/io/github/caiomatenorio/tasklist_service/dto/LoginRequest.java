@@ -1,4 +1,4 @@
-package io.github.caiomatenorio.tasklist_service.dto.request;
+package io.github.caiomatenorio.tasklist_service.dto;
 
 import jakarta.validation.constraints.NotBlank;
 

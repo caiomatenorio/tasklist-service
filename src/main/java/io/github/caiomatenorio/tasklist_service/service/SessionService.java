@@ -9,13 +9,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-import io.github.caiomatenorio.tasklist_service.dto.output.RefreshSessionOutput;
+import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
+import io.github.caiomatenorio.tasklist_service.dto.RefreshSessionOutput;
 import io.github.caiomatenorio.tasklist_service.entity.Session;
+import io.github.caiomatenorio.tasklist_service.entity.User;
 import io.github.caiomatenorio.tasklist_service.exception.RefreshTokenException;
 import io.github.caiomatenorio.tasklist_service.repository.SessionRepository;
 import io.github.caiomatenorio.tasklist_service.util.JwtUtil;
 import io.github.caiomatenorio.tasklist_service.util.RefreshTokenUtil;
-import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -27,6 +28,19 @@ public class SessionService {
     private final SessionRepository sessionRepository;
     private final RefreshTokenUtil refreshTokenUtil;
     private final JwtUtil jwtUtil;
+
+    public Session getSession(UUID sessionId) throws NoSuchElementException {
+        return sessionRepository.findById(sessionId).orElseThrow();
+    }
+
+    public UUID createSession(User user) {
+        String refreshToken = refreshTokenUtil.generateRefreshToken();
+        Instant now = Instant.now();
+        Instant expiration = now.plusSeconds(sessionExpirationSeconds);
+
+        Session session = new Session(user, refreshToken, now, now, expiration);
+        return sessionRepository.save(session).getId();
+    }
 
     public RefreshSessionOutput refreshSession(@Nullable String refreshToken) throws RefreshTokenException {
         if (refreshToken == null)
@@ -49,15 +63,19 @@ public class SessionService {
         return new RefreshSessionOutput(updatedSession.getId(), updatedSession.getUser().getUsername());
     }
 
-    public Set<Cookie> createSessionCookies(UUID sessionId) throws NoSuchElementException {
+    public Set<ConventionalCookie> createSessionCookies(UUID sessionId) throws NoSuchElementException {
         Session session = sessionRepository.findById(sessionId).orElseThrow();
 
-        String jwt = jwtUtil.generateJwt(session.getUser().getUsername());
+        String jwt = jwtUtil.generateJwt(session.getId());
         String refreshToken = session.getRefreshToken();
 
-        Cookie authCookie = jwtUtil.createAuthCookie(jwt);
-        Cookie refreshCookie = refreshTokenUtil.createRefreshCookie(refreshToken);
+        ConventionalCookie authCookie = jwtUtil.createAuthCookie(jwt);
+        ConventionalCookie refreshCookie = refreshTokenUtil.createRefreshCookie(refreshToken);
 
         return Set.of(authCookie, refreshCookie);
+    }
+
+    public void deleteSession(UUID sessionId) {
+        sessionRepository.deleteById(sessionId);
     }
 }

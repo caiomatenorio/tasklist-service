@@ -2,6 +2,7 @@ package io.github.caiomatenorio.tasklist_service.util;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
@@ -9,11 +10,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
+import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
+import io.github.caiomatenorio.tasklist_service.service.SessionService;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -26,6 +28,7 @@ public class JwtUtil {
     private String jwtSecret;
 
     private final CookieUtil cookieUtil;
+    private final SessionService sessionService;
 
     private SecretKey key;
 
@@ -38,19 +41,22 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(jwtSecretBytes);
     }
 
-    public String generateJwt(String username) {
+    public String generateJwt(UUID sessionId) {
+        String username = sessionService.getSession(sessionId).getUser().getUsername();
+
         Instant now = Instant.now();
         Instant expiresAt = now.plusSeconds(jwtExpirationSeconds);
 
         return Jwts.builder()
-                .subject(username)
+                .subject(sessionId.toString())
+                .claim("username", username)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiresAt))
                 .signWith(key)
                 .compact();
     }
 
-    public Cookie createAuthCookie(String jwt) {
+    public ConventionalCookie createAuthCookie(String jwt) {
         return cookieUtil.createSecureCookie("auth_token", jwt, jwtExpirationSeconds);
     }
 
@@ -69,12 +75,22 @@ public class JwtUtil {
         }
     }
 
+    public UUID extractSessionId(String token) {
+        return UUID.fromString(
+                Jwts.parser()
+                        .verifyWith(key)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload()
+                        .getSubject());
+    }
+
     public String extractUsername(String token) {
         return Jwts.parser()
                 .verifyWith(key)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .getSubject();
+                .get("username", String.class);
     }
 }

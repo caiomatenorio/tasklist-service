@@ -6,7 +6,7 @@ import java.util.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import jakarta.servlet.http.Cookie;
+import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -30,7 +30,7 @@ public class RefreshTokenUtil {
                 .encodeToString(randomBytes);
     }
 
-    public Cookie createRefreshCookie(String refreshToken) {
+    public ConventionalCookie createRefreshCookie(String refreshToken) {
         return cookieUtil.createSecureCookie("refresh_token", refreshToken, sessionDurationSeconds);
     }
 }

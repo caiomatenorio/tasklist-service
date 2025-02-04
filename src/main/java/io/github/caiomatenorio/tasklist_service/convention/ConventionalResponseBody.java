@@ -1,41 +1,26 @@
-package io.github.caiomatenorio.tasklist_service.dto;
+package io.github.caiomatenorio.tasklist_service.convention;
 
 import java.time.Instant;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import lombok.Getter;
 import lombok.NonNull;
 
-public sealed interface ConventionalResponse permits ConventionalResponse.Success, ConventionalResponse.Error {
+public sealed interface ConventionalResponseBody
+        permits ConventionalResponseBody.Success, ConventionalResponseBody.Error {
     HttpStatus getStatus();
 
     Instant getTimestamp();
 
-    ConventionalResponseEntity toEntity();
+    ResponseEntity<ConventionalResponseBody> toResponseEntity();
 
-    // record Success<T>(
-    // @NonNull HttpStatus status,
-    // @NonNull Instant timestamp,
-    // T data) implements ConventionalResponse {
-    // @Override
-    // public ConventionalResponseEntity toEntity() {
-    // return new ConventionalResponseEntity(this);
-    // }
-    // }
-
-    // record Error(
-    // @NonNull HttpStatus status,
-    // @NonNull Instant timestamp,
-    // String message) implements ConventionalResponse {
-    // @Override
-    // public ConventionalResponseEntity toEntity() {
-    // return new ConventionalResponseEntity(this);
-    // }
-    // }
+    ResponseEntity<ConventionalResponseBody> toResponseEntity(HttpHeaders headers);
 
     @Getter
-    public static final class Success<T> implements ConventionalResponse {
+    public static final class Success<T> implements ConventionalResponseBody {
         private final HttpStatus status;
         private final Instant timestamp;
         private final T data;
@@ -57,13 +42,18 @@ public sealed interface ConventionalResponse permits ConventionalResponse.Succes
         }
 
         @Override
-        public ConventionalResponseEntity toEntity() {
-            return new ConventionalResponseEntity(this);
+        public ResponseEntity<ConventionalResponseBody> toResponseEntity() {
+            return ResponseEntity.status(status).body(this);
+        }
+
+        @Override
+        public ResponseEntity<ConventionalResponseBody> toResponseEntity(HttpHeaders headers) {
+            return ResponseEntity.status(status).headers(headers).body(this);
         }
     }
 
     @Getter
-    public static final class Error implements ConventionalResponse {
+    public static final class Error implements ConventionalResponseBody {
         private final HttpStatus status;
         private final Instant timestamp;
         private final String message;
@@ -78,8 +68,13 @@ public sealed interface ConventionalResponse permits ConventionalResponse.Succes
         }
 
         @Override
-        public ConventionalResponseEntity toEntity() {
-            return new ConventionalResponseEntity(this);
+        public ResponseEntity<ConventionalResponseBody> toResponseEntity() {
+            return ResponseEntity.status(status).body(this);
+        }
+
+        @Override
+        public ResponseEntity<ConventionalResponseBody> toResponseEntity(HttpHeaders headers) {
+            return ResponseEntity.status(status).headers(headers).body(this);
         }
     }
 }
