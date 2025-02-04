@@ -8,10 +8,12 @@ import org.springframework.stereotype.Service;
 
 import io.github.caiomatenorio.tasklist_service.dto.request.LoginRequest;
 import io.github.caiomatenorio.tasklist_service.dto.request.SignupRequest;
+import io.github.caiomatenorio.tasklist_service.dto.response.GetUserBasicDataResponse;
 import io.github.caiomatenorio.tasklist_service.exception.InvalidUsernameOrPasswordException;
 import io.github.caiomatenorio.tasklist_service.exception.UsernameAlreadyInUseException;
 import io.github.caiomatenorio.tasklist_service.model.User;
 import io.github.caiomatenorio.tasklist_service.repository.UserRepository;
+import io.github.caiomatenorio.tasklist_service.security.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -20,6 +22,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final SessionService sessionService;
+    private final AuthUtil authUtil;
 
     public UUID login(LoginRequest request) throws InvalidUsernameOrPasswordException {
         User user = userRepository.findByUsername(request.username())
@@ -47,4 +50,9 @@ public class UserService {
         sessionService.deleteSession(sessionId);
         SecurityContextHolder.clearContext();
     }
+
+    public GetUserBasicDataResponse getUserBasicData() {
+        return new GetUserBasicDataResponse(authUtil.getCurrentUsername(), authUtil.getCurrentName());
+    }
+
 }

@@ -33,4 +33,16 @@ public class AuthUtil {
 
         return (UUID) authentication.getCredentials();
     }
+
+    public String getCurrentName() throws UnauthenticatedException, IllegalArgumentException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null)
+            throw new UnauthenticatedException();
+
+        if (!(authentication.getDetails() instanceof String))
+            throw new IllegalArgumentException("Details is not a string");
+
+        return (String) authentication.getDetails();
+    }
 }

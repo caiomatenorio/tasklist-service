@@ -1,6 +1,7 @@
 package io.github.caiomatenorio.tasklist_service.security.filter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -35,7 +36,7 @@ public class TokenValidationFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
-        boolean skipped = skipIfLogin(request, response, filterChain);
+        boolean skipped = skipIfLoginOrSignup(request, response, filterChain);
 
         if (skipped)
             return;
@@ -48,11 +49,13 @@ public class TokenValidationFilter extends OncePerRequestFilter {
         useRefreshToken(request, response, filterChain);
     }
 
-    private boolean skipIfLogin(
+    private boolean skipIfLoginOrSignup(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws IOException, ServletException {
-        if (request.getRequestURI().equals("/login")) {
+        String uri = request.getRequestURI();
+
+        if (List.of("/login", "/signup").contains(uri)) {
             filterChain.doFilter(request, response);
             return true;
         }
@@ -70,7 +73,9 @@ public class TokenValidationFilter extends OncePerRequestFilter {
         if (jwtUtil.isTokenValid(jwt)) {
             String username = jwtUtil.extractUsername(jwt);
             UUID sessionId = jwtUtil.extractSessionId(jwt);
-            authenticate(username, sessionId);
+            String name = jwtUtil.extractName(jwt);
+
+            authenticate(username, sessionId, name);
 
             filterChain.doFilter(request, response);
             return true;
@@ -86,7 +91,10 @@ public class TokenValidationFilter extends OncePerRequestFilter {
             throws NoRefreshTokenProvidedException, InvalidRefreshTokenException, IOException, ServletException {
         String refreshToken = cookieUtil.getCookieValue(request, "refresh_token").orElse(null);
         Session refreshedSession = sessionService.refreshSession(refreshToken);
-        authenticate(refreshedSession.getUser().getUsername(), refreshedSession.getId());
+        authenticate(
+                refreshedSession.getUser().getUsername(),
+                refreshedSession.getId(),
+                refreshedSession.getUser().getName());
         Set<ConventionalCookie> newCookies = sessionService.createSessionCookies(refreshedSession.getId());
 
         newCookies.stream()
@@ -96,7 +104,7 @@ public class TokenValidationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private void authenticate(String username, UUID sessionId) {
-        SecurityContextHolder.getContext().setAuthentication(new AuthenticationToken(username, sessionId));
+    private void authenticate(String username, UUID sessionId, String name) {
+        SecurityContextHolder.getContext().setAuthentication(new AuthenticationToken(username, sessionId, name));
     }
 }
