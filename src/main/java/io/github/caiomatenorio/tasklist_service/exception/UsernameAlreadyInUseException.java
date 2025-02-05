@@ -1,10 +1,7 @@
 package io.github.caiomatenorio.tasklist_service.exception;
 
-import io.github.caiomatenorio.tasklist_service.convention.ConventionalErrorCode;
-import io.github.caiomatenorio.tasklist_service.convention.ConventionalException;
-
-public class UsernameAlreadyInUseException extends ConventionalException {
+public class UsernameAlreadyInUseException extends RuntimeException {
     public UsernameAlreadyInUseException() {
-        super(ConventionalErrorCode.ERR005);
+        super("The username is already in use.");
     }
 }

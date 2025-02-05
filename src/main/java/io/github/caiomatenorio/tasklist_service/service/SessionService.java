@@ -10,8 +10,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
-import io.github.caiomatenorio.tasklist_service.exception.InvalidRefreshTokenException;
-import io.github.caiomatenorio.tasklist_service.exception.NoRefreshTokenProvidedException;
+import io.github.caiomatenorio.tasklist_service.exception.UnauthorizedException;
 import io.github.caiomatenorio.tasklist_service.model.Session;
 import io.github.caiomatenorio.tasklist_service.model.User;
 import io.github.caiomatenorio.tasklist_service.repository.SessionRepository;
@@ -43,13 +42,13 @@ public class SessionService {
     }
 
     public Session refreshSession(@Nullable String refreshToken)
-            throws NoRefreshTokenProvidedException, InvalidRefreshTokenException {
+            throws UnauthorizedException {
         if (refreshToken == null)
-            throw new NoRefreshTokenProvidedException();
+            throw new UnauthorizedException();
 
         Session session = sessionRepository
                 .findByRefreshTokenAndExpiredAtAfter(refreshToken, Instant.now())
-                .orElseThrow(InvalidRefreshTokenException::new);
+                .orElseThrow(UnauthorizedException::new);
 
         String newRefreshToken = refreshTokenUtil.generateRefreshToken();
         Instant now = Instant.now();

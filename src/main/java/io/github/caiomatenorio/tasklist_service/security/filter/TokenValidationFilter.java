@@ -10,9 +10,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
-import io.github.caiomatenorio.tasklist_service.exception.InvalidRefreshTokenException;
-import io.github.caiomatenorio.tasklist_service.exception.NoRefreshTokenProvidedException;
+import io.github.caiomatenorio.tasklist_service.convention.ConventionalResponseBody;
+import io.github.caiomatenorio.tasklist_service.exception.ErrorCode;
+import io.github.caiomatenorio.tasklist_service.exception.UnauthorizedException;
 import io.github.caiomatenorio.tasklist_service.model.Session;
 import io.github.caiomatenorio.tasklist_service.security.token.AuthenticationToken;
 import io.github.caiomatenorio.tasklist_service.security.util.JwtUtil;
@@ -30,23 +33,32 @@ public class TokenValidationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final SessionService sessionService;
     private final CookieUtil cookieUtil;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
-        boolean skipped = skipIfLoginOrSignup(request, response, filterChain);
+        try {
+            boolean skipped = skipIfLoginOrSignup(request, response, filterChain);
 
-        if (skipped)
-            return;
+            if (skipped)
+                return;
 
-        skipped = useJwt(request, response, filterChain);
+            skipped = useJwt(request, response, filterChain);
 
-        if (skipped)
-            return;
+            if (skipped)
+                return;
 
-        useRefreshToken(request, response, filterChain);
+            useRefreshToken(request, response, filterChain);
+        } catch (UnauthorizedException e) {
+            deleteAuthenticationCookies(response);
+            new ConventionalResponseBody.Error(401, ErrorCode.ERR002).writeResponse(response, objectMapper);
+        } catch (Exception e) {
+            System.out.println(e);
+            new ConventionalResponseBody.Error(500, ErrorCode.ERR000).writeResponse(response, objectMapper);
+        }
     }
 
     private boolean skipIfLoginOrSignup(
@@ -72,9 +84,9 @@ public class TokenValidationFilter extends OncePerRequestFilter {
 
         if (jwtUtil.isTokenValid(jwt)) {
             authenticate(
-                    jwtUtil.extractUserId(jwt),
-                    jwtUtil.extractSessionId(jwt),
                     jwtUtil.extractUsername(jwt),
+                    jwtUtil.extractSessionId(jwt),
+                    jwtUtil.extractUserId(jwt),
                     jwtUtil.extractName(jwt));
 
             filterChain.doFilter(request, response);
@@ -88,13 +100,13 @@ public class TokenValidationFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain)
-            throws NoRefreshTokenProvidedException, InvalidRefreshTokenException, IOException, ServletException {
+            throws UnauthorizedException, IOException, ServletException {
         String refreshToken = cookieUtil.getCookieValue(request, "refresh_token").orElse(null);
         Session refreshedSession = sessionService.refreshSession(refreshToken);
         authenticate(
-                refreshedSession.getUser().getId(),
-                refreshedSession.getId(),
                 refreshedSession.getUser().getUsername(),
+                refreshedSession.getId(),
+                refreshedSession.getUser().getId(),
                 refreshedSession.getUser().getName());
         Set<ConventionalCookie> newCookies = sessionService.createSessionCookies(refreshedSession.getId());
 
@@ -105,8 +117,15 @@ public class TokenValidationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private void authenticate(UUID userId, UUID sessionId, String username, String name) {
+    private void authenticate(String username, UUID sessionId, UUID userId, String name) {
         SecurityContextHolder.getContext()
-                .setAuthentication(new AuthenticationToken(userId, sessionId, username, name));
+                .setAuthentication(new AuthenticationToken(username, sessionId, userId, name));
+    }
+
+    private void deleteAuthenticationCookies(HttpServletResponse response) {
+        cookieUtil.deleteCookies("auth_token", "refresh_token")
+                .stream()
+                .map(ConventionalCookie::toServletCookie)
+                .forEach(response::addCookie);
     }
 }

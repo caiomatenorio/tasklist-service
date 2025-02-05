@@ -2,7 +2,6 @@ package io.github.caiomatenorio.tasklist_service.service;
 
 import java.util.UUID;
 
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +9,7 @@ import io.github.caiomatenorio.tasklist_service.dto.request.LoginRequest;
 import io.github.caiomatenorio.tasklist_service.dto.request.SignupRequest;
 import io.github.caiomatenorio.tasklist_service.dto.response.GetCurrentUserDataResponse;
 import io.github.caiomatenorio.tasklist_service.exception.InvalidUsernameOrPasswordException;
-import io.github.caiomatenorio.tasklist_service.exception.UnauthenticatedException;
+import io.github.caiomatenorio.tasklist_service.exception.UnauthorizedException;
 import io.github.caiomatenorio.tasklist_service.exception.UsernameAlreadyInUseException;
 import io.github.caiomatenorio.tasklist_service.model.User;
 import io.github.caiomatenorio.tasklist_service.repository.UserRepository;
@@ -47,16 +46,14 @@ public class UserService {
     }
 
     public void logout() {
-        UUID sessionId = (UUID) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        UUID sessionId = authUtil.getCurrentUserDetails().sessionId();
         sessionService.deleteSession(sessionId);
-        SecurityContextHolder.clearContext();
     }
 
-    public GetCurrentUserDataResponse getCurrentUserData() throws UnauthenticatedException, IllegalArgumentException {
+    public GetCurrentUserDataResponse getCurrentUserData() throws UnauthorizedException, IllegalArgumentException {
         return new GetCurrentUserDataResponse(
-                authUtil.getCurrentUserId(),
+                authUtil.getCurrentUserDetails().userId(),
                 authUtil.getCurrentUsername(),
-                authUtil.getCurrentName());
+                authUtil.getCurrentUserDetails().name());
     }
-
 }
