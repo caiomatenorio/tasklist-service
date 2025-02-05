@@ -16,7 +16,7 @@ import lombok.NonNull;
 
 public sealed interface ConventionalResponseBody
         permits ConventionalResponseBody.Success, ConventionalResponseBody.Error {
-    int getStatusCode();
+    Integer getStatusCode();
 
     HttpStatus getStatus();
 
@@ -30,7 +30,7 @@ public sealed interface ConventionalResponseBody
 
     @Getter
     public static final class Success<T> implements ConventionalResponseBody {
-        private final int statusCode;
+        private final Integer statusCode;
         private final HttpStatus status;
         private final Instant timestamp;
         private final T data;
@@ -45,8 +45,11 @@ public sealed interface ConventionalResponseBody
                 throw new IllegalArgumentException("Success status must be 2xx");
         }
 
-        public Success(int status) {
-            this(status, null);
+        public Success(int statusCode) {
+            this.statusCode = statusCode;
+            this.status = HttpStatus.valueOf(statusCode);
+            this.timestamp = null;
+            this.data = null;
 
             if (!this.status.isSameCodeAs(HttpStatus.NO_CONTENT))
                 throw new IllegalArgumentException("Success status with null data must be 204");
@@ -74,14 +77,14 @@ public sealed interface ConventionalResponseBody
 
     @Getter
     public static final class Error implements ConventionalResponseBody {
-        private final int statusCode;
+        private final Integer statusCode;
         private final HttpStatus status;
         private final Instant timestamp;
         private final ErrorCode errorCode;
         private final String message;
 
-        public Error(int status, @NonNull ErrorCode errorCode) {
-            this(status, errorCode, errorCode.getMessage());
+        public Error(int statusCode, @NonNull ErrorCode errorCode) {
+            this(statusCode, errorCode, errorCode.getMessage());
         }
 
         public Error(int statusCode, @NonNull ErrorCode errorCode, @NonNull String message) {
