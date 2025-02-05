@@ -8,7 +8,9 @@ public enum ErrorCode {
     ERR001("Invalid username or password"),
     ERR002("The user is not authorized to access this resource, please log in"),
     ERR003("Username already in use"),
-    ERR004("The request method is not supported");
+    ERR004("The request method is not supported"),
+    ERR005("This resource was not found"),
+    ERR006("Invalid password"),;
 
     private final String message;
 

@@ -74,10 +74,4 @@ public class CookieUtil {
                 "/",
                 "Strict");
     }
-
-    public Set<ConventionalCookie> deleteCookies(String... names) {
-        return Arrays.stream(names)
-                .map(this::deleteCookie)
-                .collect(Collectors.toSet());
-    }
 }

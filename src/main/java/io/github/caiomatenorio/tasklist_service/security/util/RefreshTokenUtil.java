@@ -34,4 +34,8 @@ public class RefreshTokenUtil {
     public ConventionalCookie createRefreshCookie(String refreshToken) {
         return cookieUtil.createSecureCookie("refresh_token", refreshToken, sessionDurationSeconds);
     }
+
+    public ConventionalCookie deleteRefreshCookie() {
+        return cookieUtil.deleteCookie("refresh_token");
+    }
 }

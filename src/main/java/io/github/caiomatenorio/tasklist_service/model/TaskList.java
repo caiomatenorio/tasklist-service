@@ -2,6 +2,7 @@ package io.github.caiomatenorio.tasklist_service.model;
 
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -35,6 +36,6 @@ public class TaskList {
     @NonNull
     private User user;
 
-    @OneToMany(mappedBy = "taskList")
+    @OneToMany(mappedBy = "taskList", cascade = CascadeType.ALL)
     private List<Task> tasks;
 }

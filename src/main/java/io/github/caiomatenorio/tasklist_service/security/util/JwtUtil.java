@@ -60,6 +60,10 @@ public class JwtUtil {
         return cookieUtil.createSecureCookie("auth_token", jwt, jwtExpirationSeconds);
     }
 
+    public ConventionalCookie deleteAuthCookie() {
+        return cookieUtil.deleteCookie("auth_token");
+    }
+
     public boolean isTokenValid(@Nullable String token) {
         if (token == null)
             return false;

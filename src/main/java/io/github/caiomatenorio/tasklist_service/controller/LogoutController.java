@@ -23,9 +23,7 @@ public class LogoutController {
 
     @PostMapping
     public ResponseEntity<ConventionalResponseBody> logout() {
-        userService.logout();
-
-        Set<ConventionalCookie> deletedCookies = cookieUtil.deleteCookies("auth_token", "refresh_token");
+        Set<ConventionalCookie> deletedCookies = userService.logout();
         HttpHeaders headers = cookieUtil.toHttpHeaders(deletedCookies);
 
         return new ConventionalResponseBody.Success<>(204).toResponseEntity(headers);

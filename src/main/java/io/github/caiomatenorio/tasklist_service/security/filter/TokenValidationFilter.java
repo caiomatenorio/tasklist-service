@@ -3,10 +3,8 @@ package io.github.caiomatenorio.tasklist_service.security.filter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import org.springframework.lang.NonNull;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,7 +15,7 @@ import io.github.caiomatenorio.tasklist_service.convention.ConventionalResponseB
 import io.github.caiomatenorio.tasklist_service.exception.ErrorCode;
 import io.github.caiomatenorio.tasklist_service.exception.UnauthorizedException;
 import io.github.caiomatenorio.tasklist_service.model.Session;
-import io.github.caiomatenorio.tasklist_service.security.token.AuthenticationToken;
+import io.github.caiomatenorio.tasklist_service.security.util.AuthUtil;
 import io.github.caiomatenorio.tasklist_service.security.util.JwtUtil;
 import io.github.caiomatenorio.tasklist_service.service.SessionService;
 import io.github.caiomatenorio.tasklist_service.util.CookieUtil;
@@ -34,6 +32,7 @@ public class TokenValidationFilter extends OncePerRequestFilter {
     private final SessionService sessionService;
     private final CookieUtil cookieUtil;
     private final ObjectMapper objectMapper;
+    private final AuthUtil authUtil;
 
     @Override
     protected void doFilterInternal(
@@ -83,7 +82,7 @@ public class TokenValidationFilter extends OncePerRequestFilter {
         String jwt = cookieUtil.getCookieValue(request, "auth_token").orElse(null);
 
         if (jwtUtil.isTokenValid(jwt)) {
-            authenticate(
+            authUtil.authenticate(
                     jwtUtil.extractUsername(jwt),
                     jwtUtil.extractSessionId(jwt),
                     jwtUtil.extractUserId(jwt),
@@ -103,7 +102,7 @@ public class TokenValidationFilter extends OncePerRequestFilter {
             throws UnauthorizedException, IOException, ServletException {
         String refreshToken = cookieUtil.getCookieValue(request, "refresh_token").orElse(null);
         Session refreshedSession = sessionService.refreshSession(refreshToken);
-        authenticate(
+        authUtil.authenticate(
                 refreshedSession.getUser().getUsername(),
                 refreshedSession.getId(),
                 refreshedSession.getUser().getId(),
@@ -117,13 +116,8 @@ public class TokenValidationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private void authenticate(String username, UUID sessionId, UUID userId, String name) {
-        SecurityContextHolder.getContext()
-                .setAuthentication(new AuthenticationToken(username, sessionId, userId, name));
-    }
-
     private void deleteAuthenticationCookies(HttpServletResponse response) {
-        cookieUtil.deleteCookies("auth_token", "refresh_token")
+        sessionService.deleteSessionCookies()
                 .stream()
                 .map(ConventionalCookie::toServletCookie)
                 .forEach(response::addCookie);

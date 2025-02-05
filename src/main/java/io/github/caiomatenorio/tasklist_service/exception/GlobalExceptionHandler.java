@@ -1,12 +1,16 @@
 package io.github.caiomatenorio.tasklist_service.exception;
 
-import org.springframework.http.HttpHeaders;
+import java.util.Set;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
 import io.github.caiomatenorio.tasklist_service.convention.ConventionalResponseBody;
+import io.github.caiomatenorio.tasklist_service.service.SessionService;
 import io.github.caiomatenorio.tasklist_service.util.CookieUtil;
 import lombok.RequiredArgsConstructor;
 
@@ -14,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
     private final CookieUtil cookieUtil;
+    private final SessionService sessionService;
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ConventionalResponseBody> handleException(Exception e) {
@@ -29,7 +34,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ConventionalResponseBody> handleUnauthorizedException(UnauthorizedException e) {
-        HttpHeaders headers = cookieUtil.toHttpHeaders(cookieUtil.deleteCookies("auth_token", "refresh_token"));
+        Set<ConventionalCookie> deletedCookies = sessionService.deleteSessionCookies();
+        var headers = cookieUtil.toHttpHeaders(deletedCookies);
 
         return new ConventionalResponseBody.Error(401, ErrorCode.ERR002).toResponseEntity(headers);
     }
@@ -44,5 +50,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ConventionalResponseBody> handleHttpRequestMethodNotSupportedException(
             HttpRequestMethodNotSupportedException e) {
         return new ConventionalResponseBody.Error(405, ErrorCode.ERR004).toResponseEntity();
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ConventionalResponseBody> handleNoResourceFoundException(NoResourceFoundException e) {
+        return new ConventionalResponseBody.Error(404, ErrorCode.ERR005).toResponseEntity();
+    }
+
+    public ResponseEntity<ConventionalResponseBody> handleInvalidPasswordException(InvalidPasswordException e) {
+        return new ConventionalResponseBody.Error(400, ErrorCode.ERR006).toResponseEntity();
     }
 }

@@ -77,6 +77,13 @@ public class SessionService {
         return Set.of(authCookie, refreshCookie);
     }
 
+    public Set<ConventionalCookie> deleteSessionCookies() {
+        ConventionalCookie deletedAuthCookie = jwtUtil.deleteAuthCookie();
+        ConventionalCookie deletedRefreshCookie = refreshTokenUtil.deleteRefreshCookie();
+
+        return Set.of(deletedAuthCookie, deletedRefreshCookie);
+    }
+
     public void deleteSession(UUID sessionId) {
         sessionRepository.deleteById(sessionId);
     }
