@@ -55,7 +55,7 @@ public class TokenValidationFilter extends OncePerRequestFilter {
             deleteAuthenticationCookies(response);
             new ErrorResponse(401, ErrorCode.ERR002).writeResponse(response, objectMapper);
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println(e); // TODO: remove
             new ErrorResponse(500, ErrorCode.ERR000).writeResponse(response, objectMapper);
         }
     }
