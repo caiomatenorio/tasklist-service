@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
 import io.github.caiomatenorio.tasklist_service.exception.UnauthorizedException;
@@ -28,6 +29,7 @@ public class SessionService {
     private final RefreshTokenUtil refreshTokenUtil;
     private final JwtUtil jwtUtil;
 
+    @Transactional(readOnly = true)
     public Session getSession(UUID sessionId) throws NoSuchElementException {
         return sessionRepository.findById(sessionId).orElseThrow();
     }
@@ -41,6 +43,7 @@ public class SessionService {
         return sessionRepository.save(session).getId();
     }
 
+    @Transactional
     public Session refreshSession(@Nullable String refreshToken)
             throws UnauthorizedException {
         if (refreshToken == null)
@@ -61,6 +64,7 @@ public class SessionService {
         return sessionRepository.save(session);
     }
 
+    @Transactional(readOnly = true)
     public Set<ConventionalCookie> createSessionCookies(UUID sessionId) throws NoSuchElementException {
         Session session = sessionRepository.findById(sessionId).orElseThrow();
 
@@ -84,6 +88,7 @@ public class SessionService {
         return Set.of(deletedAuthCookie, deletedRefreshCookie);
     }
 
+    @Transactional
     public void deleteSession(UUID sessionId) {
         sessionRepository.deleteById(sessionId);
     }

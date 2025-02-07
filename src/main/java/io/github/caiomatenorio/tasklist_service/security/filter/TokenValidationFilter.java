@@ -11,7 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
-import io.github.caiomatenorio.tasklist_service.convention.ConventionalResponseBody;
+import io.github.caiomatenorio.tasklist_service.convention.ErrorResponse;
 import io.github.caiomatenorio.tasklist_service.exception.ErrorCode;
 import io.github.caiomatenorio.tasklist_service.exception.UnauthorizedException;
 import io.github.caiomatenorio.tasklist_service.model.Session;
@@ -53,10 +53,10 @@ public class TokenValidationFilter extends OncePerRequestFilter {
             useRefreshToken(request, response, filterChain);
         } catch (UnauthorizedException e) {
             deleteAuthenticationCookies(response);
-            new ConventionalResponseBody.Error(401, ErrorCode.ERR002).writeResponse(response, objectMapper);
+            new ErrorResponse(401, ErrorCode.ERR002).writeResponse(response, objectMapper);
         } catch (Exception e) {
             System.out.println(e);
-            new ConventionalResponseBody.Error(500, ErrorCode.ERR000).writeResponse(response, objectMapper);
+            new ErrorResponse(500, ErrorCode.ERR000).writeResponse(response, objectMapper);
         }
     }
 

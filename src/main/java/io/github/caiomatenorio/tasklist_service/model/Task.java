@@ -39,6 +39,12 @@ public class Task {
     @NonNull
     private TaskList taskList;
 
+    public Task(String title, String description, Status status) {
+        this.title = title;
+        this.description = description;
+        this.status = status;
+    }
+
     public boolean isDone() {
         return status == Status.DONE;
     }

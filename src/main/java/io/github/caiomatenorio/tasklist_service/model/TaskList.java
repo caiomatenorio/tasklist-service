@@ -29,6 +29,8 @@ public class TaskList {
     @NonNull
     private String name;
 
+    @Column(nullable = false)
+    @NonNull
     private String description;
 
     @ManyToOne

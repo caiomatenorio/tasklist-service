@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.caiomatenorio.tasklist_service.convention.ConventionalCookie;
-import io.github.caiomatenorio.tasklist_service.convention.ConventionalResponseBody;
+import io.github.caiomatenorio.tasklist_service.convention.ConventionalResponse;
+import io.github.caiomatenorio.tasklist_service.convention.SuccessResponse;
 import io.github.caiomatenorio.tasklist_service.service.UserService;
 import io.github.caiomatenorio.tasklist_service.util.CookieUtil;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +23,10 @@ public class LogoutController {
     private final CookieUtil cookieUtil;
 
     @PostMapping
-    public ResponseEntity<ConventionalResponseBody> logout() {
+    public ResponseEntity<ConventionalResponse> logout() {
         Set<ConventionalCookie> deletedCookies = userService.logout();
         HttpHeaders headers = cookieUtil.toHttpHeaders(deletedCookies);
 
-        return new ConventionalResponseBody.Success<>(204).toResponseEntity(headers);
+        return new SuccessResponse<>(204).toResponseEntity(headers);
     }
 }
