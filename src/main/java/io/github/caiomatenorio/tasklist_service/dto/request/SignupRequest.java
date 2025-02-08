@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record SignupRequest(
-        @NotBlank @Size(max = 255) String name,
+        @NotBlank(message = "Field 'name' must not be blank.") @Size(max = 255, message = "Field 'name' must not be larger than 255 characters.") String name,
         @ValidUsername String username,
         @ValidPassword String password) {
 }

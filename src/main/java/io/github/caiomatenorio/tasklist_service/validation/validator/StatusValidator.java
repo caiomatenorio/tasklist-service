@@ -8,12 +8,8 @@ public class StatusValidator implements ConstraintValidator<ValidStatus, String>
     private static final String STATUS_PATTERN = "^(todo|in_progress|done)$";
 
     @Override
-    public void initialize(ValidStatus constraintAnnotation) {
-    }
-
-    @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        return value.matches(STATUS_PATTERN);
+        return value != null && value.matches(STATUS_PATTERN);
     }
 
 }

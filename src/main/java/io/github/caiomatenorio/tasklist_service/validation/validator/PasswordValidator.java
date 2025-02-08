@@ -9,11 +9,7 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
     private static final String PASSWORD_PATTERN = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,255}$";
 
     @Override
-    public void initialize(ValidPassword constraintAnnotation) {
-    }
-
-    @Override
     public boolean isValid(@NonNull String value, ConstraintValidatorContext context) {
-        return value.matches(PASSWORD_PATTERN);
+        return value != null && value.matches(PASSWORD_PATTERN);
     }
 }

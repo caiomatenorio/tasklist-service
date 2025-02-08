@@ -13,7 +13,7 @@ import jakarta.validation.Payload;
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidUsername {
-    String message() default "The password must have at least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character";
+    String message() default "The password must be between 8 and 255 characters long, and it must have 1 uppercase letter, 1 lowercase letter, 1 number and 1 special character.";
 
     Class<?>[] groups() default {};
 

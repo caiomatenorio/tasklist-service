@@ -1,9 +1,12 @@
 package io.github.caiomatenorio.tasklist_service.exception;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -76,5 +79,25 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidStatusException.class)
     public ResponseEntity<ConventionalResponse> handleInvalidStatusException(InvalidStatusException e) {
         return new ErrorResponse(400, ErrorCode.ERR009).toResponseEntity();
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ConventionalResponse> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException e) {
+        Map<String, String> errors = new HashMap<>();
+
+        e.getBindingResult().getFieldErrors().forEach(error -> {
+            String message = errors.get(error.getField());
+
+            if (message == null) {
+                errors.put(error.getField(), error.getDefaultMessage());
+                return;
+            }
+
+            message += " " + error.getDefaultMessage();
+            errors.put(error.getField(), message);
+        });
+
+        return new ErrorResponse(400, ErrorCode.ERR010, errors).toResponseEntity();
     }
 }

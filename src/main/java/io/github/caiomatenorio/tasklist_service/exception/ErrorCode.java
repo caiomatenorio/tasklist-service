@@ -13,7 +13,8 @@ public enum ErrorCode {
     ERR006("Invalid password"),
     ERR007("Task list not found"),
     ERR008("Task not found"),
-    ERR009("Status should be 'todo', 'in_progress' or 'done'");
+    ERR009("Status should be 'todo', 'in_progress' or 'done'"),
+    ERR010("Validation error");
 
     private final String message;
 

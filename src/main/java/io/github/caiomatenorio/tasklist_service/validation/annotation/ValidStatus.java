@@ -13,7 +13,7 @@ import jakarta.validation.Payload;
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidStatus {
-    String message() default "The status must be one of the following values: todo, in_progress, done";
+    String message() default "The status must be equal to one of the following values: 'todo', 'in_progress', 'done'.";
 
     Class<?>[] groups() default {};
 
