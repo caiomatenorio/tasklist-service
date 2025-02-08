@@ -26,7 +26,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ConventionalResponse> handleException(Exception e) {
-        System.out.println(e.toString()); // TODO: remove
         return new ErrorResponse(500, ErrorCode.ERR000).toResponseEntity();
     }
 
